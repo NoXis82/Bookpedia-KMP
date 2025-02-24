@@ -83,10 +83,10 @@ private fun BookListPreview() {
 @Preview
 @Composable
 private fun BookListScreenPreview() {
-//    BookListScreen(
-//        state = BookListState(
-//            searchResults = books
-//        ),
-//        onAction = {}
-//    )
+    BookListScreen(
+        state = {
+            BookListState(searchResults = books)
+        },
+        onAction = {}
+    )
 }
