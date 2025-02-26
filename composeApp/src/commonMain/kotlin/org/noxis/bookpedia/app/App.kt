@@ -22,6 +22,9 @@ import androidx.navigation.toRoute
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.noxis.bookpedia.book.SelectedBookViewModel
+import org.noxis.bookpedia.book.presentation.book_details.action.BookDetailAction
+import org.noxis.bookpedia.book.presentation.book_details.screen.BookDetailScreenRoot
+import org.noxis.bookpedia.book.presentation.book_details.viewmodel.BookDetailViewModel
 import org.noxis.bookpedia.book.presentation.book_list.screen.BookListScreenRoot
 import org.noxis.bookpedia.book.presentation.book_list.viewmodel.BookListViewModel
 
@@ -56,10 +59,20 @@ fun App() {
 //                    val args = entry.toRoute<Route.BookDetail>()
                     val selectedBookVM = it.sharedKoinViewModel<SelectedBookViewModel>(navController)
                     val selectedBook by selectedBookVM.selectedBook.collectAsStateWithLifecycle()
+                    val viewModel = koinViewModel<BookDetailViewModel>()
 
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Book detail screen! $selectedBook ")
+                    LaunchedEffect(selectedBook) {
+                        selectedBook?.let {
+                            viewModel.onAction(BookDetailAction.OnSelectedBookChange(it))
+                        }
                     }
+
+                    BookDetailScreenRoot(
+                        viewModel = viewModel,
+                        onBackClick = {
+                            navController.navigateUp()
+                        }
+                    )
                 }
             }
         }
