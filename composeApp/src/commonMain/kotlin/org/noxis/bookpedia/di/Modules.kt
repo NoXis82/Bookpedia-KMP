@@ -11,6 +11,7 @@ import org.noxis.bookpedia.book.data.network.RemoteBookDataSource
 import org.noxis.bookpedia.book.domain.BookRepository
 import org.noxis.bookpedia.core.data.HttpClientFactory
 import org.noxis.bookpedia.book.data.repository.DefaultBookRepository
+import org.noxis.bookpedia.book.presentation.book_details.viewmodel.BookDetailViewModel
 import org.noxis.bookpedia.book.presentation.book_list.viewmodel.BookListViewModel
 
 expect val platformModule: Module
@@ -24,5 +25,5 @@ val sharedModule = module {
 
     viewModelOf(::BookListViewModel)
     viewModelOf(::SelectedBookViewModel)
-
+    viewModelOf(::BookDetailViewModel)
 }
