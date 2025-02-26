@@ -5,6 +5,7 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.noxis.bookpedia.book.SelectedBookViewModel
 import org.noxis.bookpedia.book.data.network.KtorRemoteBookDataSource
 import org.noxis.bookpedia.book.data.network.RemoteBookDataSource
 import org.noxis.bookpedia.book.domain.BookRepository
@@ -22,5 +23,6 @@ val sharedModule = module {
     singleOf(::DefaultBookRepository).bind<BookRepository>()
 
     viewModelOf(::BookListViewModel)
+    viewModelOf(::SelectedBookViewModel)
 
 }
