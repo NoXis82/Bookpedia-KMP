@@ -10,4 +10,9 @@ sealed interface DataError: Error {
         SERIALIZATION,
         UNKNOWN
     }
+
+    enum class Local: DataError {
+        DISK_FULL,
+        UNKNOWN
+    }
 }
