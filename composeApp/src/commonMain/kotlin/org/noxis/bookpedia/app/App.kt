@@ -1,5 +1,7 @@
 package org.noxis.bookpedia.app
 
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -38,9 +40,13 @@ fun App() {
         NavHost(navController = navController, startDestination = Route.BookGraph) {
             navigation<Route.BookGraph>(startDestination = Route.BookList) {
 
-                composable<Route.BookList> {
+                composable<Route.BookList>(
+                    exitTransition = { slideOutHorizontally() },
+                    popEnterTransition = { slideInHorizontally() }
+                ) {
                     val viewmodel = koinViewModel<BookListViewModel>()
-                    val selectedBookVM = it.sharedKoinViewModel<SelectedBookViewModel>(navController)
+                    val selectedBookVM =
+                        it.sharedKoinViewModel<SelectedBookViewModel>(navController)
 
                     LaunchedEffect(true) {
                         selectedBookVM.onSelectBook(null)
@@ -55,9 +61,13 @@ fun App() {
                     )
                 }
 
-                composable<Route.BookDetail> {
+                composable<Route.BookDetail>(
+                    enterTransition = { slideInHorizontally { initialOffset -> initialOffset } },
+                    exitTransition = { slideOutHorizontally { initialOffset -> initialOffset } }
+                ) {
 //                    val args = entry.toRoute<Route.BookDetail>()
-                    val selectedBookVM = it.sharedKoinViewModel<SelectedBookViewModel>(navController)
+                    val selectedBookVM =
+                        it.sharedKoinViewModel<SelectedBookViewModel>(navController)
                     val selectedBook by selectedBookVM.selectedBook.collectAsStateWithLifecycle()
                     val viewModel = koinViewModel<BookDetailViewModel>()
 
@@ -80,7 +90,7 @@ fun App() {
 }
 
 @Composable
-private inline fun <reified T: ViewModel> NavBackStackEntry.sharedKoinViewModel(
+private inline fun <reified T : ViewModel> NavBackStackEntry.sharedKoinViewModel(
     navController: NavController
 ): T {
     val navGraphRoute = destination.parent?.route ?: return koinViewModel<T>()
