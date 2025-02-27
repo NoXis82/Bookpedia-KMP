@@ -7,6 +7,8 @@ import androidx.navigation.toRoute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -28,7 +30,7 @@ class BookDetailViewModel(
     val state = _state//.asStateFlow()
         .onStart {
             fetchBookDescription()
-//            //observeFavoriteStatus()
+            observeFavoriteStatus()
         }
         .stateIn(
             viewModelScope,
@@ -43,19 +45,30 @@ class BookDetailViewModel(
                     it.copy(book = action.book)
                 }
             }
-//            is BookDetailAction.OnFavoriteClick -> {
-//                viewModelScope.launch {
-//                    if(state.value.isFavorite) {
-//                        bookRepository.deleteFromFavorites(bookId)
-//                    } else {
-//                        state.value.book?.let { book ->
-//                            bookRepository.markAsFavorite(book)
-//                        }
-//                    }
-//                }
-//            }
+            is BookDetailAction.OnFavoriteClick -> {
+                viewModelScope.launch {
+                    if(state.value.isFavorite) {
+                        bookRepository.deleteFromFavorites(bookId)
+                    } else {
+                        state.value.book?.let { book ->
+                            bookRepository.markAsFavorite(book)
+                        }
+                    }
+                }
+            }
             else -> Unit
         }
+    }
+
+    private fun observeFavoriteStatus() {
+        bookRepository
+            .isBookFavorite(bookId)
+            .onEach { isFavorite ->
+                _state.update { it.copy(
+                    isFavorite = isFavorite
+                ) }
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun fetchBookDescription() {
