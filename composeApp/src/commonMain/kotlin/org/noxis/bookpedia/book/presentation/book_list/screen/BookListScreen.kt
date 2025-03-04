@@ -1,6 +1,11 @@
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+
 package org.noxis.bookpedia.book.presentation.book_list.screen
 
+import androidx.compose.foundation.BasicTooltipBox
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,33 +15,51 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberBasicTooltipState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bookpedia.composeapp.generated.resources.Res
 import bookpedia.composeapp.generated.resources.favorites
 import bookpedia.composeapp.generated.resources.no_favorite_books
 import bookpedia.composeapp.generated.resources.no_search_results
 import bookpedia.composeapp.generated.resources.search_results
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.noxis.bookpedia.book.domain.Book
@@ -124,6 +147,14 @@ fun BookListScreen(
                 topEnd = 32.dp
             )
         ) {
+
+            val tooltipPosition = //TooltipDefaults.rememberPlainTooltipPositionProvider()
+                TooltipDefaults.rememberRichTooltipPositionProvider()
+            val tooltipState = //rememberBasicTooltipState(isPersistent = true)
+                rememberTooltipState(isPersistent = false)
+            val scope = rememberCoroutineScope()
+
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -142,20 +173,36 @@ fun BookListScreen(
                         )
                     }
                 ) {
-                    Tab(
-                        selected = state().selectedTabIndex == 0,
-                        onClick = {
-                            onAction(BookListAction.OnTabSelected(0))
+                    TooltipBox(
+                        positionProvider = tooltipPosition,
+                        tooltip =  {
+                            RichTooltip(
+                                title = { Text("Title") },
+                                caretSize = DpSize(10.dp, 10.dp),
+                            ) {
+                                Text("This is where a description would go.")
+                            }
                         },
-                        modifier = Modifier.weight(1f),
-                        selectedContentColor = SandYellow,
-                        unselectedContentColor = Color.Black.copy(alpha = 0.5f)
+                        state = tooltipState
                     ) {
-                        Text(
-                            text = stringResource(Res.string.search_results),
-                            modifier = Modifier
-                                .padding(vertical = 12.dp)
-                        )
+                        Tab(
+                            selected = state().selectedTabIndex == 0,
+                            onClick = {
+                                scope.launch {
+                                    tooltipState.show()
+                                }
+                                onAction(BookListAction.OnTabSelected(0))
+                            },
+                            modifier = Modifier.weight(1f),
+                            selectedContentColor = SandYellow,
+                            unselectedContentColor = Color.Black.copy(alpha = 0.5f)
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.search_results),
+                                modifier = Modifier
+                                    .padding(vertical = 12.dp)
+                            )
+                        }
                     }
                     Tab(
                         selected = state().selectedTabIndex == 1,
@@ -247,6 +294,46 @@ fun BookListScreen(
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun Tooltip(
+    text: String,
+    content: @Composable () -> Unit
+) {
+    var isTooltipVisible by remember { mutableStateOf(false) }
+    //val view = LocalView.current
+
+    Box(
+        modifier = Modifier.wrapContentSize()
+    ) {
+        content()
+
+        if (isTooltipVisible) {
+            Popup(
+                alignment = Alignment.BottomCenter,
+                properties = PopupProperties(
+                    dismissOnClickOutside = true,
+                    focusable = true
+                ),
+                onDismissRequest = { isTooltipVisible = false }
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .background(Color.Gray)
+                ) {
+                    Text(
+                        text = text,
+                        color = Color.White,
+                        modifier = Modifier.padding(8.dp)
+                    )
                 }
             }
         }
